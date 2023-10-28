@@ -22,8 +22,8 @@ sys.path.insert(1, os.path.join(os.path.dirname(__file__), '/opt/victronenergy/d
 from vedbus import VeDbusService
 
 
-class DbusShelly3emService:
-  def __init__(self, paths, productname='Shelly 3EM', connection='Shelly 3EM HTTP JSON service'):
+class DbusShellyProEMService:
+  def __init__(self, paths, productname='Shelly Pro EM', connection='Shelly Pro EM HTTP JSON service'):
     config = self._getConfig()
     deviceinstance = int(config['DEFAULT']['DeviceInstance'])
     customname = config['DEFAULT']['CustomName']
@@ -125,7 +125,7 @@ class DbusShelly3emService:
     
     # check for response
     if not meter_r:
-        raise ConnectionError("No response from Shelly 3EM - %s" % (URL))
+        raise ConnectionError("No response from Shelly Pro EM - %s" % (URL))
     
     meter_data = meter_r.json()     
     
@@ -146,26 +146,16 @@ class DbusShelly3emService:
  
   def _update(self):   
     try:
-       #get data from Shelly 3em
+       #get data from Shelly Pro EM
        meter_data = self._getShellyData()
        
        #send data to DBus
-       self._dbusservice['/Ac/Power'] = meter_data['em:0']['total_act_power'] # positive: consumption, negative: feed into grid
-       self._dbusservice['/Ac/L1/Voltage'] = meter_data['em:0']['a_voltage']
-       self._dbusservice['/Ac/L2/Voltage'] = meter_data['em:0']['b_voltage']
-       self._dbusservice['/Ac/L3/Voltage'] = meter_data['em:0']['c_voltage']
-       self._dbusservice['/Ac/L1/Current'] = meter_data['em:0']['a_current']
-       self._dbusservice['/Ac/L2/Current'] = meter_data['em:0']['b_current']
-       self._dbusservice['/Ac/L3/Current'] = meter_data['em:0']['c_current']
-       self._dbusservice['/Ac/L1/Power'] = meter_data['em:0']['a_act_power']
-       self._dbusservice['/Ac/L2/Power'] = meter_data['em:0']['b_act_power']
-       self._dbusservice['/Ac/L3/Power'] = meter_data['em:0']['c_act_power']
-       self._dbusservice['/Ac/L1/Energy/Forward'] = (meter_data['emdata:0']['a_total_act_energy']/1000)
-       self._dbusservice['/Ac/L2/Energy/Forward'] = (meter_data['emdata:0']['b_total_act_energy']/1000)
-       self._dbusservice['/Ac/L3/Energy/Forward'] = (meter_data['emdata:0']['c_total_act_energy']/1000)
-       self._dbusservice['/Ac/L1/Energy/Reverse'] = (meter_data['emdata:0']['a_total_act_ret_energy']/1000) 
-       self._dbusservice['/Ac/L2/Energy/Reverse'] = (meter_data['emdata:0']['b_total_act_ret_energy']/1000) 
-       self._dbusservice['/Ac/L3/Energy/Reverse'] = (meter_data['emdata:0']['c_total_act_ret_energy']/1000) 
+       self._dbusservice['/Ac/Power'] = meter_data['em1:0']['act_power'] # positive: consumption, negative: feed into grid
+       self._dbusservice['/Ac/L1/Voltage'] = meter_data['em1:0']['voltage']
+       self._dbusservice['/Ac/L1/Current'] = meter_data['em1:0']['current']
+       self._dbusservice['/Ac/L1/Power'] = meter_data['em1:0']['act_power']
+       self._dbusservice['/Ac/L1/Energy/Forward'] = (meter_data['em1data:0']['total_act_energy']/1000)
+       self._dbusservice['/Ac/L1/Energy/Reverse'] = (meter_data['em1data:0']['total_act_ret_energy']/1000) 
        
        # Old version
        #self._dbusservice['/Ac/Energy/Forward'] = self._dbusservice['/Ac/L1/Energy/Forward'] + self._dbusservice['/Ac/L2/Energy/Forward'] + self._dbusservice['/Ac/L3/Energy/Forward']
@@ -247,7 +237,7 @@ def main():
       _v = lambda p, v: (str(round(v, 1)) + ' V')   
      
       #start our main-service
-      pvac_output = DbusShelly3emService(
+      pvac_output = DbusShellyProEMService(
         paths={
           '/Ac/Energy/Forward': {'initial': 0, 'textformat': _kwh}, # energy bought from the grid
           '/Ac/Energy/Reverse': {'initial': 0, 'textformat': _kwh}, # energy sold to the grid
